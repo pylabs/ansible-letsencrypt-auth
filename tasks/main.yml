@@ -1,2 +1,42 @@
 ---
-# tasks file for ansible-letsencrypt-auth
+- block:
+  - name: check if we need fetch letsencrypt certs
+    stat:
+      path: "/var/lib/dehydrated/certs/{{ letsencrypt_auth_domain_name  }}/fullchain.pem"
+    register: certs
+  - block:
+      - name: setup dehydrated
+        lineinfile:
+          path: "/etc/dehydrated/domains.txt"
+          line: "{{ letsencrypt_auth_domain_name }}"
+          create: "yes"
+      - name: install nginx config
+        template:
+          src: "nginx_before_auth.j2"
+          dest: "/etc/nginx/sites-available/{{ letsencrypt_auth_domain_name }}"
+          owner: "root"
+          group: "root"
+          mode: "0644"
+      - name: create soft link
+        file:
+          src: "/etc/nginx/sites-available/{{ letsencrypt_auth_domain_name }}"
+          dest: "/etc/nginx/sites-enabled/{{ letsencrypt_auth_domain_name }}"
+          owner: "root"
+          group: "root"
+          state: "link"
+      - name: reload nginx
+        systemd: state=reloaded name=nginx
+      - name: getting certs
+        command: "dehydrated -c"
+      - name: activate certs
+        template:
+          src: "nginx_after_auth.j2"
+          dest: "/etc/nginx/sites-available/{{ letsencrypt_auth_domain_name }}"
+          owner: "root"
+          group: "root"
+          mode: "0644"
+      - name: reload nginx
+        systemd: state=reloaded name=nginx
+    when: certs.stat.exists == False
+  tags:
+    - letsencrypt-auth
