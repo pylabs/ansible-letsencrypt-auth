@@ -1,5 +1,5 @@
 galaxy_info:
-  role_name: letsencrypt-auth
+  role_name: letsencrypt_auth
   author: William Wu
   description: Getting letsencrypt certs automatically with nginx frontend
   company: PyLabs

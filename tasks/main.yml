@@ -39,4 +39,4 @@
         systemd: state=reloaded name=nginx
     when: certs.stat.exists == False
   tags:
-    - letsencrypt-auth
+    - letsencrypt_auth

@@ -1,4 +1,4 @@
-letsencrypt auth
+letsencrypt_auth
 ================
 
 Getting letsencrypt certs automatically with nginx frontend
@@ -20,7 +20,7 @@ Example Playbook
 
 ```yaml
   roles:
-    - role: pylabs.letsencrypt-auth
+    - role: pylabs.letsencrypt_auth
   vars:
     letsencrypt_auth_domain_name: www.example.com
 ```
