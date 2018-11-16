@@ -7,7 +7,9 @@ Role Variables
 --------------
 
 ```yaml
-letsencrypt_auth_domain_name: YOUR_DOMAIN_NAME
+letsencrypt_auth_domain_names:
+  - FIRST_DOMAIN_NAME
+  - SECOND_DOMAIN_NAME
 ```
 
 Dependencies
@@ -22,7 +24,9 @@ Example Playbook
   roles:
     - role: pylabs.letsencrypt_auth
   vars:
-    letsencrypt_auth_domain_name: www.example.com
+    letsencrypt_auth_domain_names:
+      - www.example.com
+      - www.example.org
 ```
 
 License
