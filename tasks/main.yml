@@ -29,9 +29,9 @@
   - name: getting certs
     command: "dehydrated -c"
   - name: check if nginx conf already has ssl settings
-    command: "grep -iP '^\s*ssl\s*on\s*;' /etc/nginx/sites-available/{{ item }}"
+    command: 'grep -iP "^\s*ssl\s*on\s*;" /etc/nginx/sites-available/{{ item }}'
     register: "nginx_{{ item }}_stat"
-    ignore_erros: "yes"
+    ignore_errors: "yes"
     with_items: "{{ letsencrypt_auth_domain_names }}"
   - name: activate certs
     template:
