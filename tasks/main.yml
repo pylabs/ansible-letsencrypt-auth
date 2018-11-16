@@ -21,7 +21,7 @@
       group: "root"
       mode: "0644"
     when: "not item.1.stat.exists"
-    loop: "{{ letsencrypt_auth_domain_names|zip(certs_file)|list }}"
+    loop: "{{ letsencrypt_auth_domain_names|zip(certs_file.results)|list }}"
 
   - name: create soft link
     file:
@@ -31,7 +31,7 @@
       group: "root"
       state: "link"
     when: "not item.1.stat.exists"
-    loop: "{{ letsencrypt_auth_domain_names|zip(certs_file)|list }}"
+    loop: "{{ letsencrypt_auth_domain_names|zip(certs_file.results)|list }}"
 
   - name: reload nginx
     systemd: state=reloaded name=nginx
@@ -53,7 +53,7 @@
       group: "root"
       mode: "0644"
     when: "item.1|failed"
-    loop: "letsencrypt_auth_domain_names|zip(nginx_config_ssl_enabled)|list"
+    loop: "letsencrypt_auth_domain_names|zip(nginx_config_ssl_enabled.results)|list"
     
   - name: "reload nginx"
     systemd: "state=reloaded name=nginx"
