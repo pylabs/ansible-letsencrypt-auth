@@ -1,47 +1,60 @@
 ---
 - block:
-  - name: setup dehydrated
+  - name: setup dehydrated domain name list
     lineinfile:
       path: "/etc/dehydrated/domains.txt"
       line: "{{ item }}"
       create: "yes"
     loop: "{{ letsencrypt_auth_domain_names }}"
+
+  - name: check if cert file exists
+    stat:
+      path: "/var/lib/dehydrated/certs/{{ item }}/fullchain.pem"
+    loop: "{{ letsencrypt_auth_domain_names }}"
+    register: "certs_file"
+
   - name: install nginx config
     template:
       src: "nginx_before_auth.j2"
-      dest: "/etc/nginx/sites-available/{{ item }}"
+      dest: "/etc/nginx/sites-available/{{ item.0 }}"
       owner: "root"
       group: "root"
       mode: "0644"
-    when: "not /var/lib/dehydrated/certs/{{ item }}/fullchain.pem|is_file"
-    loop: "{{ letsencrypt_auth_domain_names }}"
+    when: "not item.1.stat.exists"
+    loop: "{{ letsencrypt_auth_domain_names|zip(certs_file)|list }}"
+
   - name: create soft link
     file:
-      src: "/etc/nginx/sites-available/{{ item }}"
-      dest: "/etc/nginx/sites-enabled/{{ item }}"
+      src: "/etc/nginx/sites-available/{{ item.0 }}"
+      dest: "/etc/nginx/sites-enabled/{{ item.0 }}"
       owner: "root"
       group: "root"
       state: "link"
-    when: "not /var/lib/dehydrated/certs/{{ item }}/fullchain.pem|is_file"
-    loop: "{{ letsencrypt_auth_domain_names }}"
+    when: "not item.1.stat.exists"
+    loop: "{{ letsencrypt_auth_domain_names|zip(certs_file)|list }}"
+
   - name: reload nginx
     systemd: state=reloaded name=nginx
+
   - name: getting certs
     command: "dehydrated -c"
+
   - name: check if nginx conf already has ssl settings
     command: 'grep -iP "^\s*ssl\s*on\s*;" /etc/nginx/sites-available/{{ item }}'
-    register: "nginx_{{ item }}_stat"
+    register: "nginx_config_ssl_enabled"
     ignore_errors: "yes"
     loop: "{{ letsencrypt_auth_domain_names }}"
+
   - name: activate certs
     template:
       src: "nginx_after_auth.j2"
-      dest: "/etc/nginx/sites-available/{{ item }}"
+      dest: "/etc/nginx/sites-available/{{ item.0 }}"
       owner: "root"
       group: "root"
       mode: "0644"
-    when: "nginx_{{ item }}_stat|failed"
-    loop: "{{ letsencrypt_auth_domain_names }}"
+    when: "item.1|failed"
+    loop: "letsencrypt_auth_domain_names|zip(nginx_config_ssl_enabled)|list"
+    
   - name: "reload nginx"
     systemd: "state=reloaded name=nginx"
   tags:
