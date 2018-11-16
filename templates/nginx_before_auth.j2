@@ -2,7 +2,7 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name {{ letsencrypt_auth_domain_name }};
+    server_name {{ item.0 }};
 
     location /.well-known {
         alias /var/lib/dehydrated;
