@@ -52,7 +52,7 @@
       owner: "root"
       group: "root"
       mode: "0644"
-    when: "item.1|failed"
+    when: "item.1 is failed"
     loop: "{{ letsencrypt_auth_domain_names|zip(nginx_config_ssl_enabled.results)|list }}"
     
   - name: "reload nginx"
