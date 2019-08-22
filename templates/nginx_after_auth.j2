@@ -8,6 +8,10 @@ server {
         alias /var/lib/dehydrated;
     }
 
+    location /.well-known/acme-challenge {
+        alias /var/lib/dehydrated/acme-challenges;
+    }
+
     return 301 https://$server_name$request_uri;
 }
 
@@ -29,7 +33,7 @@ server {
     server_name {{ item.0 }};
 
     root /srv/www/{{ item.0 }};
-    index index.html index.htm;
+    index index.html index.htm index.php;
 
     location / {
         try_files $uri $uri/ =404;
@@ -37,5 +41,9 @@ server {
 
     location /.well-known {
         alias /var/lib/dehydrated;
+    }
+
+    location /.well-known/acme-challenge {
+        alias /var/lib/dehydrated/acme-challenges;
     }
 }
