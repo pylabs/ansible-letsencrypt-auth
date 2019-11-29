@@ -43,7 +43,7 @@
     find:
       path: "/etc/nginx/sites-available/"
       pattern: "{{ item }}"
-      contains: "^\s*ssl\s*on\s*;"
+      contains: '^\s*ssl\s*on\s*;'
     register: "nginx_config_ssl_enabled"
     loop: "{{ letsencrypt_auth_domain_names }}"
 
