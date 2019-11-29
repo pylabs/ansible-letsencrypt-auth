@@ -40,9 +40,11 @@
     command: "/usr/local/sbin/dehydrated-0.6.5 -c"
 
   - name: check if nginx conf already has ssl settings
-    command: 'grep -iP "^\s*ssl\s*on\s*;" /etc/nginx/sites-available/{{ item }}'
+    find:
+      path: "/etc/nginx/sites-available/"
+      pattern: "{{ item }}"
+      contains: "^\s*ssl\s*on\s*;"
     register: "nginx_config_ssl_enabled"
-    ignore_errors: "yes"
     loop: "{{ letsencrypt_auth_domain_names }}"
 
   - name: activate certs
@@ -52,9 +54,9 @@
       owner: "root"
       group: "root"
       mode: "0644"
-    when: "item.1 is failed"
+    when: not item.1.matched
     loop: "{{ letsencrypt_auth_domain_names|zip(nginx_config_ssl_enabled.results)|list }}"
-    
+
   - name: "reload nginx"
     systemd: "state=reloaded name=nginx"
   tags:
