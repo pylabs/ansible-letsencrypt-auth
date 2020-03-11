@@ -37,7 +37,7 @@
     systemd: state=reloaded name=nginx
 
   - name: getting certs
-    command: "/usr/local/sbin/dehydrated-0.6.5 -c"
+    command: "dehydrated -c"
 
   - name: check if nginx conf already has ssl settings
     find:
