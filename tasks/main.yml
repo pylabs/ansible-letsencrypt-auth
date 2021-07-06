@@ -1,20 +1,20 @@
 ---
 - block:
   - name: setup dehydrated domain name list
-    ansible.builtin.lineinfile:
+    lineinfile:
       path: "/etc/dehydrated/domains.txt"
       line: "{{ item }}"
       create: "yes"
     loop: "{{ letsencrypt_auth_domain_names }}"
 
   - name: check if cert file exists
-    ansible.builtin.stat:
+    stat:
       path: "/var/lib/dehydrated/certs/{{ item }}/fullchain.pem"
     loop: "{{ letsencrypt_auth_domain_names }}"
     register: "certs_file"
 
   - name: install nginx config
-    ansible.builtin.template:
+    template:
       src: "nginx_before_auth.j2"
       dest: "/etc/nginx/sites-available/{{ item.0 }}"
       owner: "root"
@@ -24,7 +24,7 @@
     loop: "{{ letsencrypt_auth_domain_names|zip(certs_file.results)|list }}"
 
   - name: create soft link
-    ansible.builtin.file:
+    file:
       src: "/etc/nginx/sites-available/{{ item.0 }}"
       dest: "/etc/nginx/sites-enabled/{{ item.0 }}"
       owner: "root"
@@ -34,13 +34,13 @@
     loop: "{{ letsencrypt_auth_domain_names|zip(certs_file.results)|list }}"
 
   - name: reload nginx
-    ansible.builtin.systemd: state=reloaded name=nginx
+    systemd: state=reloaded name=nginx
 
   - name: getting certs
-    ansible.builtin.command: "dehydrated -c"
+    command: "dehydrated -c"
 
   - name: check if nginx conf already has ssl settings
-    ansible.builtin.find:
+    find:
       path: "/etc/nginx/sites-available/"
       pattern: "{{ item }}"
       contains: '^\s*ssl\s*on\s*;'
@@ -48,7 +48,7 @@
     loop: "{{ letsencrypt_auth_domain_names }}"
 
   - name: activate certs
-    ansible.builtin.template:
+    template:
       src: "nginx_after_auth.j2"
       dest: "/etc/nginx/sites-available/{{ item.0 }}"
       owner: "root"
@@ -58,6 +58,6 @@
     loop: "{{ letsencrypt_auth_domain_names|zip(nginx_config_ssl_enabled.results)|list }}"
 
   - name: "reload nginx"
-    ansible.builtin.systemd: "state=reloaded name=nginx"
+    systemd: "state=reloaded name=nginx"
   tags:
     - letsencrypt_auth
