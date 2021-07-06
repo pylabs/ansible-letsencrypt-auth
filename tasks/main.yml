@@ -37,7 +37,8 @@
     ansible.builtin.systemd: state=reloaded name=nginx
 
   - name: getting certs
-    ansible.builtin.command: "dehydrated -c"
+    ansible.builtin.command:
+      cmd: "dehydrated -c"
 
   - name: check if nginx conf already has ssl settings
     ansible.builtin.find:
